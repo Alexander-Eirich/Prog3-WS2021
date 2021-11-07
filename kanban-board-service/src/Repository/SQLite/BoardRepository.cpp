@@ -1,6 +1,8 @@
 #include "BoardRepository.hpp"
 #include "Core/Exception/NotImplementedException.hpp"
+#include <ctime>
 #include <filesystem>
+#include <iostream>
 #include <string.h>
 
 using namespace Prog3::Repository::SQLite;
@@ -77,7 +79,18 @@ std::optional<Column> BoardRepository::getColumn(int id) {
 }
 
 std::optional<Column> BoardRepository::postColumn(std::string name, int position) {
-    throw NotImplementedException();
+    string sqlpostColumn = "INSERT INTO Column ('name', 'position') VALUES ('" + name + "', '" + to_string(position) + "');";
+    int result = 0;
+    char *errorMessage = nullptr;
+    result = sqlite3_exec(database, sqlpostColumn.c_str(), NULL, 0, &errorMessage);
+    handleSQLError(result, errorMessage);
+
+    if (SQLITE_OK == result) {
+        //The sqlite3_last_insert_rowid(D) interface usually returns the rowid of the most recent successful INSERT into a rowid table or virtual table on database connection D
+        int columnId = sqlite3_last_insert_rowid(database);
+        return Column(columnId, name, position);
+    }
+    return std::nullopt;
 }
 
 std::optional<Prog3::Core::Model::Column> BoardRepository::putColumn(int id, std::string name, int position) {
@@ -85,7 +98,11 @@ std::optional<Prog3::Core::Model::Column> BoardRepository::putColumn(int id, std
 }
 
 void BoardRepository::deleteColumn(int id) {
-    throw NotImplementedException();
+    string sqlDeleteColumn = "DELETE FROM Column WHERE id=" + to_string(id) + ";";
+    int result = 0;
+    char *errorMessage = nullptr;
+    result = sqlite3_exec(database, sqlDeleteColumn.c_str(), NULL, 0, &errorMessage);
+    handleSQLError(result, errorMessage);
 }
 
 std::vector<Item> BoardRepository::getItems(int columnId) {
@@ -97,7 +114,19 @@ std::optional<Item> BoardRepository::getItem(int columnId, int itemId) {
 }
 
 std::optional<Item> BoardRepository::postItem(int columnId, std::string title, int position) {
-    throw NotImplementedException();
+    //Für Timestamp
+    time_t timestamp = time(nullptr);
+    char *s = ctime(&timestamp);
+
+    string sqlpostItem = "INSERT INTO Item ('column_Id', 'title', 'position', 'date') VALUES ('" + to_string(columnId) + "', '" + title + "', '" + to_string(position) + "', '" + s + "');";
+    int result = 0;
+    char *errorMessage = nullptr;
+    result = sqlite3_exec(database, sqlpostItem.c_str(), NULL, 0, &errorMessage);
+    handleSQLError(result, errorMessage);
+    if (SQLITE_OK == result) {
+        return Item(sqlite3_last_insert_rowid(database), title, position, s);
+    }
+    return std::nullopt;
 }
 
 std::optional<Prog3::Core::Model::Item> BoardRepository::putItem(int columnId, int itemId, std::string title, int position) {
@@ -105,7 +134,12 @@ std::optional<Prog3::Core::Model::Item> BoardRepository::putItem(int columnId, i
 }
 
 void BoardRepository::deleteItem(int columnId, int itemId) {
-    throw NotImplementedException();
+    //columnId kann man sich sparen, weil itemId eindeutig ist
+    string sqlDeleteItem = "DELETE FROM Column WHERE Id=" + to_string(itemId) + ";";
+    int result = 0;
+    char *errorMessage = nullptr;
+    result = sqlite3_exec(database, sqlDeleteItem.c_str(), NULL, 0, &errorMessage);
+    handleSQLError(result, errorMessage);
 }
 
 void BoardRepository::handleSQLError(int statementResult, char *errorMessage) {
