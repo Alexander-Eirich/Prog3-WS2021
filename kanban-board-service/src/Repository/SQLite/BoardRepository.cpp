@@ -135,7 +135,7 @@ std::optional<Prog3::Core::Model::Item> BoardRepository::putItem(int columnId, i
 
 void BoardRepository::deleteItem(int columnId, int itemId) {
     //columnId kann man sich sparen, weil itemId eindeutig ist
-    string sqlDeleteItem = "DELETE FROM Column WHERE Id=" + to_string(itemId) + ";";
+    string sqlDeleteItem = "DELETE FROM Item WHERE Id=" + to_string(itemId) + ";";
     int result = 0;
     char *errorMessage = nullptr;
     result = sqlite3_exec(database, sqlDeleteItem.c_str(), NULL, 0, &errorMessage);
