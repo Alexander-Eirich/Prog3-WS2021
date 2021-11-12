@@ -147,7 +147,8 @@ std::optional<Prog3::Core::Model::Item> BoardRepository::putItem(int columnId, i
     char *errorMessage = nullptr;
     result = sqlite3_exec(database, sqlPutItem.c_str(), NULL, 0, &errorMessage);
     handleSQLError(result, errorMessage);
-    if (SQLITE_OK == result) {
+    int numberOfModifiedRows = sqlite3_changes(database);
+    if (SQLITE_OK == result && numberOfModifiedRows != 0) {
         return Item(itemId, title, position, s);
     }
     return std::nullopt;
