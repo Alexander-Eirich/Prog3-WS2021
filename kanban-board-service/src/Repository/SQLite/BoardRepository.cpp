@@ -69,7 +69,7 @@ void BoardRepository::initialize() {
 Board BoardRepository::getBoard() {
     throw NotImplementedException();
 }
-
+//Todo
 std::vector<Column> BoardRepository::getColumns() {
     throw NotImplementedException();
 }
@@ -117,9 +117,19 @@ void BoardRepository::deleteColumn(int id) {
 std::vector<Item> BoardRepository::getItems(int columnId) {
     throw NotImplementedException();
 }
-
+//ToDo
 std::optional<Item> BoardRepository::getItem(int columnId, int itemId) {
-    throw NotImplementedException();
+    //Platzhalter --> Funktion queryCallback füllt Platzhalter mit richtigen Werten
+    Item item(itemId, "", -1, "");
+    string sqlGetItem = "SELECT * FROM Item WHERE id = " + to_string(itemId) + " AND column_id = " + to_string(columnId) + ";";
+    int result = 0;
+    char *errorMessage = nullptr;
+    result = sqlite3_exec(database, sqlGetItem.c_str(), queryCallback, &item, &errorMessage);
+    handleSQLError(result, errorMessage);
+    if (SQLITE_OK == result) {
+        return item;
+    }
+    return nullopt;
 }
 
 std::optional<Item> BoardRepository::postItem(int columnId, std::string title, int position) {
@@ -204,6 +214,31 @@ void BoardRepository::createDummyData() {
   sqlite3_exec takes a "Callback function" as one of its arguments, and since there are many crazy approaches in the wild internet,
   I want to show you how the signature of this "callback function" may look like in order to work with sqlite3_exec()
 */
+//Für jede Row aufgerufen
+
 int BoardRepository::queryCallback(void *data, int numberOfColumns, char **fieldValues, char **columnNames) {
+    Item *pItem = static_cast<Item *>(data);
+    string title;
+    int position;
+    string date;
+    int itemId;
+    for (int i = 0; i < numberOfColumns; i++) {
+        cout << columnNames[i] << endl;
+        if (!strcmp(columnNames[i], "id")) {
+            itemId = stoi(fieldValues[i]);
+        }
+        if (!strcmp(columnNames[i], "title")) {
+            title.assign(fieldValues[i]);
+        }
+        if (!strcmp(columnNames[i], "position")) {
+            position = stoi(fieldValues[i]);
+        }
+        if (!strcmp(columnNames[i], "date")) {
+            date.assign(fieldValues[i]);
+        }
+    }
+    pItem->setPos(position);
+    pItem->setTitle(title);
+    pItem->setTimestamp(date);
     return 0;
 }
