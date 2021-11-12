@@ -142,7 +142,7 @@ std::optional<Prog3::Core::Model::Item> BoardRepository::putItem(int columnId, i
     time_t timestamp = time(nullptr);
     char *s = ctime(&timestamp);
 
-    string sqlPutItem = "UPDATE Item SET title = '" + title + "', position = '" + to_string(position) + "', date = '" + s + "', WHERE column_id = " + to_string(columnId) + " AND id = " + to_string(itemId) + ";";
+    string sqlPutItem = "UPDATE Item SET title = '" + title + "', position = '" + to_string(position) + "', date = '" + s + "' WHERE column_id = " + to_string(columnId) + " AND id = " + to_string(itemId) + ";";
     int result = 0;
     char *errorMessage = nullptr;
     result = sqlite3_exec(database, sqlPutItem.c_str(), NULL, 0, &errorMessage);
