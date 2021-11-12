@@ -92,16 +92,22 @@ std::optional<Column> BoardRepository::postColumn(std::string name, int position
     }
     return std::nullopt;
 }
-//ToDO
+
 std::optional<Prog3::Core::Model::Column> BoardRepository::putColumn(int id, std::string name, int position) {
+    vector<Item> vector;
     string sqlPutColumn = "UPDATE Column SET name = '" + name + "', position = '" + to_string(position) + "' WHERE id = " + to_string(id) + ";";
     int result = 0;
     char *errorMessage = nullptr;
-    result = sqlite3_exec(database, sqlPutColumn.c_str(), NULL, 0, &errorMessage);
+    result = sqlite3_exec(database, sqlPutColumn.c_str(), queryCallback, &vector, &errorMessage);
     handleSQLError(result, errorMessage);
     int numberOfRowsModified = sqlite3_changes(database);
+
     if (SQLITE_OK == result && numberOfRowsModified != 0) {
-        return Column(id, name, position);
+        Column c(id, name, position);
+        for (Item item : vector) {
+            c.addItem(item);
+        }
+        return c;
     }
     return std::nullopt;
 }
@@ -113,20 +119,27 @@ void BoardRepository::deleteColumn(int id) {
     result = sqlite3_exec(database, sqlDeleteColumn.c_str(), NULL, 0, &errorMessage);
     handleSQLError(result, errorMessage);
 }
-
+// ToDo
 std::vector<Item> BoardRepository::getItems(int columnId) {
-    throw NotImplementedException();
+    vector<Item> pVector;
+    string sqlGetItems = "SELECT * FROM Item WHERE column_id = " + to_string(columnId) + ";";
+    int result = 0;
+    char *errorMessage = nullptr;
+    result = sqlite3_exec(database, sqlGetItems.c_str(), queryCallback, &pVector, &errorMessage);
+    handleSQLError(result, errorMessage);
+    return pVector;
 }
-//ToDo
+
 std::optional<Item> BoardRepository::getItem(int columnId, int itemId) {
-    //Platzhalter --> Funktion queryCallback füllt Platzhalter mit richtigen Werten
-    Item item(itemId, "", -1, "");
+
+    vector<Item> pVector;
     string sqlGetItem = "SELECT * FROM Item WHERE id = " + to_string(itemId) + " AND column_id = " + to_string(columnId) + ";";
     int result = 0;
     char *errorMessage = nullptr;
-    result = sqlite3_exec(database, sqlGetItem.c_str(), queryCallback, &item, &errorMessage);
+    result = sqlite3_exec(database, sqlGetItem.c_str(), queryCallback, &pVector, &errorMessage);
     handleSQLError(result, errorMessage);
-    if (SQLITE_OK == result) {
+    if (SQLITE_OK == result && !pVector.empty()) {
+        Item item = pVector.back();
         return item;
     }
     return nullopt;
@@ -217,13 +230,16 @@ void BoardRepository::createDummyData() {
 //Für jede Row aufgerufen
 
 int BoardRepository::queryCallback(void *data, int numberOfColumns, char **fieldValues, char **columnNames) {
-    Item *pItem = static_cast<Item *>(data);
+    //cast void pointer into Item type pointer
+    vector<Item> *pV = static_cast<vector<Item> *>(data);
+    // Item *pItem = static_cast<Item *>(data);
     string title;
     int position;
     string date;
     int itemId;
+
     for (int i = 0; i < numberOfColumns; i++) {
-        cout << columnNames[i] << endl;
+        //strcmp überprüft ganzen string und nicht nur den ersten char
         if (!strcmp(columnNames[i], "id")) {
             itemId = stoi(fieldValues[i]);
         }
@@ -237,8 +253,13 @@ int BoardRepository::queryCallback(void *data, int numberOfColumns, char **field
             date.assign(fieldValues[i]);
         }
     }
-    pItem->setPos(position);
-    pItem->setTitle(title);
-    pItem->setTimestamp(date);
+    Item i(itemId, title, position, date);
+
+    pV->push_back(i);
+
+    //pItem->setPos(position);
+    //pItem->setTitle(title);
+    //pItem->setTimestamp(date);
+    //pItem->setID(itemId);
     return 0;
 }
