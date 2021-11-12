@@ -99,8 +99,8 @@ std::optional<Prog3::Core::Model::Column> BoardRepository::putColumn(int id, std
     char *errorMessage = nullptr;
     result = sqlite3_exec(database, sqlPutColumn.c_str(), NULL, 0, &errorMessage);
     handleSQLError(result, errorMessage);
-
-    if (SQLITE_OK == result) {
+    int numberOfRowsModified = sqlite3_changes(database);
+    if (SQLITE_OK == result && numberOfRowsModified != 0) {
         return Column(id, name, position);
     }
     return std::nullopt;
@@ -137,16 +137,18 @@ std::optional<Item> BoardRepository::postItem(int columnId, std::string title, i
     }
     return std::nullopt;
 }
-//ToDO
+
 std::optional<Prog3::Core::Model::Item> BoardRepository::putItem(int columnId, int itemId, std::string title, int position) {
-    string sqlPutItem = "UPDATE Item SET title = '" + title + "', position = '" + to_string(position) + "' WHERE column_id = " + to_string(columnId) + "AND id = " + to_string(itemId) + ";";
+    time_t timestamp = time(nullptr);
+    char *s = ctime(&timestamp);
+
+    string sqlPutItem = "UPDATE Item SET title = '" + title + "', position = '" + to_string(position) + "', date = '" + s + "', WHERE column_id = " + to_string(columnId) + " AND id = " + to_string(itemId) + ";";
     int result = 0;
     char *errorMessage = nullptr;
     result = sqlite3_exec(database, sqlPutItem.c_str(), NULL, 0, &errorMessage);
     handleSQLError(result, errorMessage);
     if (SQLITE_OK == result) {
-        //timestamp missing --> todo get
-        return Item(itemId, title, position, "");
+        return Item(itemId, title, position, s);
     }
     return std::nullopt;
 }
