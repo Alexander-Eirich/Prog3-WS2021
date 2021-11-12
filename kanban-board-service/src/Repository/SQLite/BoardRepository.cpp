@@ -94,16 +94,18 @@ std::optional<Column> BoardRepository::postColumn(std::string name, int position
 }
 
 std::optional<Prog3::Core::Model::Column> BoardRepository::putColumn(int id, std::string name, int position) {
-    vector<Item> vector;
+
     string sqlPutColumn = "UPDATE Column SET name = '" + name + "', position = '" + to_string(position) + "' WHERE id = " + to_string(id) + ";";
     int result = 0;
     char *errorMessage = nullptr;
-    result = sqlite3_exec(database, sqlPutColumn.c_str(), queryCallback, &vector, &errorMessage);
+    result = sqlite3_exec(database, sqlPutColumn.c_str(), NULL, 0, &errorMessage);
     handleSQLError(result, errorMessage);
     int numberOfRowsModified = sqlite3_changes(database);
 
     if (SQLITE_OK == result && numberOfRowsModified != 0) {
         Column c(id, name, position);
+        vector<Item> vector = getItems(id);
+
         for (Item item : vector) {
             c.addItem(item);
         }
@@ -119,7 +121,7 @@ void BoardRepository::deleteColumn(int id) {
     result = sqlite3_exec(database, sqlDeleteColumn.c_str(), NULL, 0, &errorMessage);
     handleSQLError(result, errorMessage);
 }
-// ToDo
+
 std::vector<Item> BoardRepository::getItems(int columnId) {
     vector<Item> pVector;
     string sqlGetItems = "SELECT * FROM Item WHERE column_id = " + to_string(columnId) + ";";
@@ -230,9 +232,9 @@ void BoardRepository::createDummyData() {
 //Für jede Row aufgerufen
 
 int BoardRepository::queryCallback(void *data, int numberOfColumns, char **fieldValues, char **columnNames) {
-    //cast void pointer into Item type pointer
+    //cast void pointer into  vector<Item> type pointer
     vector<Item> *pV = static_cast<vector<Item> *>(data);
-    // Item *pItem = static_cast<Item *>(data);
+
     string title;
     int position;
     string date;
@@ -254,12 +256,6 @@ int BoardRepository::queryCallback(void *data, int numberOfColumns, char **field
         }
     }
     Item i(itemId, title, position, date);
-
     pV->push_back(i);
-
-    //pItem->setPos(position);
-    //pItem->setTitle(title);
-    //pItem->setTimestamp(date);
-    //pItem->setID(itemId);
     return 0;
 }
