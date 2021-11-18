@@ -55,9 +55,18 @@ string JsonParser::jsonValueToString(rapidjson::Value const &json) {
     json.Accept(writer);
     return buffer.GetString();
 }
-
+//ToDo
 string JsonParser::convertToApiString(std::vector<Column> &columns) {
-    throw NotImplementedException();
+    string result = EMPTY_JSON;
+    Document d(kObjectType);
+
+    Value jsonColumns(kArrayType);
+    for (Column &c : columns) {
+        Value jsonC = getJsonValueFromModel(c, d.GetAllocator());
+        jsonColumns.PushBack(jsonC, d.GetAllocator());
+    }
+    string s = jsonValueToString(jsonColumns);
+    return s;
 }
 
 string JsonParser::convertToApiString(Item &item) {
