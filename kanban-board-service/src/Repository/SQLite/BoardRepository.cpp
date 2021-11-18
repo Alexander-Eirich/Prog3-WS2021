@@ -75,7 +75,23 @@ std::vector<Column> BoardRepository::getColumns() {
 }
 
 std::optional<Column> BoardRepository::getColumn(int id) {
-    throw NotImplementedException();
+    vector<Column> cVector;
+    string sqlGetColumn = "SELECT * FROM Column WHERE Id =" + to_string(id) + ";";
+    int result = 0;
+    char *errorMessage = nullptr;
+    result = sqlite3_exec(database, sqlGetColumn.c_str(), queryCallback2, &cVector, &errorMessage);
+    handleSQLError(result, errorMessage);
+
+    if (SQLITE_OK == result && !cVector.empty()) {
+        Column c = cVector.back();
+        vector<Item> vector = getItems(id);
+
+        for (Item item : vector) {
+            c.addItem(item);
+        }
+        return c;
+    }
+    return nullopt;
 }
 
 std::optional<Column> BoardRepository::postColumn(std::string name, int position) {
@@ -257,5 +273,25 @@ int BoardRepository::queryCallback(void *data, int numberOfColumns, char **field
     }
     Item i(itemId, title, position, date);
     pV->push_back(i);
+    return 0;
+}
+int BoardRepository::queryCallback2(void *data, int numberOfColumns, char **fieldValues, char **columnNames) {
+    vector<Column> *pC = static_cast<vector<Column> *>(data);
+    int id;
+    string name;
+    int positon;
+    for (int i = 0; i < numberOfColumns; i++) {
+        if (!strcmp(columnNames[i], "id")) {
+            id = stoi(fieldValues[i]);
+        }
+        if (!strcmp(columnNames[i], "name")) {
+            name = fieldValues[i];
+        }
+        if (!strcmp(columnNames[i], "position")) {
+            positon = stoi(fieldValues[i]);
+        }
+    }
+    Column c(id, name, positon);
+    pC->push_back(c);
     return 0;
 }
