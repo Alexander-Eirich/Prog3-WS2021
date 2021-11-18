@@ -71,9 +71,23 @@ Board BoardRepository::getBoard() {
 }
 //Todo
 std::vector<Column> BoardRepository::getColumns() {
-    throw NotImplementedException();
-}
+    vector<Column> cVector;
+    string sqlGetColumns = "SELECT * FROM Column ORDERED BY position;";
+    int result = 0;
+    char *errorMessage = nullptr;
+    result = sqlite3_exec(database, sqlGetColumns.c_str(), queryCallback2, &cVector, &errorMessage);
+    handleSQLError(result, errorMessage);
 
+    //if(SQLITE_OK == result && !cVector.empty()){
+    for (Column column : cVector) {
+        vector<Item> vecItem = getItems(column.getId());
+        for (Item item : vecItem) {
+            column.addItem(item);
+        }
+    }
+    return cVector;
+    //}
+}
 std::optional<Column> BoardRepository::getColumn(int id) {
     vector<Column> cVector;
     string sqlGetColumn = "SELECT * FROM Column WHERE Id =" + to_string(id) + ";";
