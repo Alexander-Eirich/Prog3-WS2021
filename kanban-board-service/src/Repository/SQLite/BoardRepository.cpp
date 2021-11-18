@@ -72,7 +72,7 @@ Board BoardRepository::getBoard() {
 
 std::vector<Column> BoardRepository::getColumns() {
     vector<Column> cVector;
-    string sqlGetColumns = "SELECT * FROM Column ORDERED BY position;";
+    string sqlGetColumns = "SELECT * FROM Column ORDER BY position;";
     int result = 0;
     char *errorMessage = nullptr;
     result = sqlite3_exec(database, sqlGetColumns.c_str(), queryCallback2, &cVector, &errorMessage);
