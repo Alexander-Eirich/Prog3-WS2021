@@ -12,13 +12,12 @@ using namespace rapidjson;
 using namespace std;
 
 string JsonParser::convertToApiString(Board &board) {
-    //Test
+
     Document d(kObjectType);
     d.AddMember("title", Value(board.getTitle().c_str(), d.GetAllocator()), d.GetAllocator());
     Value jsonColumns = getJsonValueFromModel(board.getColumns(), d.GetAllocator());
     d.AddMember("columns", jsonColumns, d.GetAllocator());
-    string s = jsonValueToString(d);
-    return s;
+    return jsonValueToString(d);
 }
 
 rapidjson::Value JsonParser::getJsonValueFromModel(std::vector<Column> const &columns, rapidjson::Document::AllocatorType &allocator) {
@@ -75,13 +74,8 @@ string JsonParser::convertToApiString(std::vector<Column> &columns) {
     string result = EMPTY_JSON;
     Document d(kObjectType);
 
-    Value jsonColumns(kArrayType);
-    for (Column &c : columns) {
-        Value jsonC = getJsonValueFromModel(c, d.GetAllocator());
-        jsonColumns.PushBack(jsonC, d.GetAllocator());
-    }
-    string s = jsonValueToString(jsonColumns);
-    return s;
+    Value jsonColumns = getJsonValueFromModel(columns, d.GetAllocator());
+    return jsonValueToString(jsonColumns);
 }
 
 string JsonParser::convertToApiString(Item &item) {
@@ -101,8 +95,7 @@ string JsonParser::convertToApiString(std::vector<Item> &items) {
         Value jsonItem = getJsonValueFromModel(item, d.GetAllocator());
         jsonItems.PushBack(jsonItem, d.GetAllocator());
     }
-    string s = jsonValueToString(jsonItems);
-    return s;
+    return jsonValueToString(jsonItems);
 }
 
 std::optional<Column> JsonParser::convertColumnToModel(int columnId, std::string &request) {
