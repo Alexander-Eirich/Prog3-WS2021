@@ -70,6 +70,7 @@ Board BoardRepository::getBoard() {
     Board board(boardTitle);
     vector<Column> vColumn = getColumns();
     board.setColumns(vColumn);
+    return board;
 }
 
 std::vector<Column> BoardRepository::getColumns() {
