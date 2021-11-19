@@ -13,6 +13,7 @@ class JsonParser : public ParserIf {
     // Methoden für convertToApiString
     rapidjson::Value getJsonValueFromModel(Prog3::Core::Model::Item const &item, rapidjson::Document::AllocatorType &allocator);
     rapidjson::Value getJsonValueFromModel(Prog3::Core::Model::Column const &column, rapidjson::Document::AllocatorType &allocator);
+    rapidjson::Value getJsonValueFromModel(std::vector<Prog3::Core::Model::Column> const &columns, rapidjson::Document::AllocatorType &allocator);
     std::string jsonValueToString(rapidjson::Value const &json);
 
     bool isValidColumn(rapidjson::Document const &document);
