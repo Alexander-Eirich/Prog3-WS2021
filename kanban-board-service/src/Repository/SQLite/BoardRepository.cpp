@@ -270,47 +270,69 @@ int BoardRepository::queryCallback(void *data, int numberOfColumns, char **field
     //cast void pointer into  vector<Item> type pointer
     vector<Item> *pV = static_cast<vector<Item> *>(data);
 
-    string title;
-    int position;
-    string date;
-    int itemId;
+    string title = "";
+    int position = -1;
+    string date = "";
+    int itemId = -1;
+    int count = 0;
 
     for (int i = 0; i < numberOfColumns; i++) {
         //strcmp überprüft ganzen string und nicht nur den ersten char
+        if (fieldValues[i] == NULL)
+            break;
         if (!strcmp(columnNames[i], "id")) {
             itemId = stoi(fieldValues[i]);
+            count++;
         }
         if (!strcmp(columnNames[i], "title")) {
             title.assign(fieldValues[i]);
+            count++;
         }
         if (!strcmp(columnNames[i], "position")) {
             position = stoi(fieldValues[i]);
+            count++;
         }
         if (!strcmp(columnNames[i], "date")) {
             date.assign(fieldValues[i]);
+            count++;
         }
     }
-    Item i(itemId, title, position, date);
-    pV->push_back(i);
+    if (count == 4) {
+        Item i(itemId, title, position, date);
+        pV->push_back(i);
+    } else {
+        cerr << "Select-query passt nicht mit qeryCallback Argumenten überein" << endl;
+    }
     return 0;
 }
 int BoardRepository::queryCallback2(void *data, int numberOfColumns, char **fieldValues, char **columnNames) {
     vector<Column> *pC = static_cast<vector<Column> *>(data);
-    int id;
-    string name;
-    int positon;
+    int id = -1;
+    string name = "";
+    int positon = -1;
+    int count = 0;
     for (int i = 0; i < numberOfColumns; i++) {
+        // Falls fieldValues == Null, --> überspringen, sonst aufgrund dereferenzierung Programmabbruch
+        if (fieldValues[i] == NULL)
+            break;
         if (!strcmp(columnNames[i], "id")) {
             id = stoi(fieldValues[i]);
+            count++;
         }
         if (!strcmp(columnNames[i], "name")) {
-            name = fieldValues[i];
+            name.assign(fieldValues[i]);
+            count++;
         }
         if (!strcmp(columnNames[i], "position")) {
             positon = stoi(fieldValues[i]);
+            count++;
         }
     }
-    Column c(id, name, positon);
-    pC->push_back(c);
+    if (count == 3) {
+        Column c(id, name, positon);
+        pC->push_back(c);
+    } else {
+        cerr << "Select-query passt nicht mit qeryCallback Argumenten überein" << endl;
+    }
     return 0;
 }
